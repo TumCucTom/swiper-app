@@ -39,10 +39,17 @@ class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
   }
 
   override func bundleURL() -> URL? {
-#if DEBUG
-    RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
-#else
-    Bundle.main.url(forResource: "main", withExtension: "jsbundle")
-#endif
+    // Always prioritize embedded bundle for standalone operation
+    if let embeddedBundle = Bundle.main.url(forResource: "main", withExtension: "jsbundle") {
+      return embeddedBundle
+    }
+    
+    // Fallback to Metro only if embedded bundle doesn't exist (for development)
+    #if DEBUG
+    return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
+    #else
+    // In release, embedded bundle should always exist
+    return nil
+    #endif
   }
 }
